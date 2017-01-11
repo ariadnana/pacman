@@ -11,15 +11,16 @@ var Ghost =function(game, key,name, pos, dir){
     this.Pos = pos;
     this.threshold = 6;
     this.turnTimer=0;
-    this.mode=1;
 
     this.ghostSpeed=150;
     this.currentDir=this.Dir;
     this.directions=[null, null, null, null, null];
+    this.opposites = [ Phaser.NONE, Phaser.RIGHT, Phaser.LEFT, Phaser.DOWN, Phaser.UP ];
     this.turnPoint = new Phaser.Point();
 
     this.ghost = this.game.add.sprite((this.Pos.x * 16) + 8, (this.Pos.y * 16) + 8, key, 0);
     this.ghost.name = this.name;
+    this.ghost.mode=1;
     this.ghost.anchor.set(0.5);
     this.ghost.animations.add('change',[0,1,6,7,2,3,4,5],10, true);
     this.ghost.animations.add('f',[9,10],10, true);
@@ -46,12 +47,12 @@ Ghost.prototype={
 
         var possibleExits=[];
         for (var q=1; q<this.directions.length; q++) {
-            if (this.checkSafetile(this.directions[q].index)) {
+            if (this.checkSafetile(this.directions[q].index) && q!==this.opposites[this.currentDir]) {
                 possibleExits.push(q);
             }
         }
 
-        switch (this.mode){
+        switch (this.ghost.mode){
             case 1:
                 var distanceToObj = 999999;
                 var direction, decision, bestDecision;
@@ -84,16 +85,6 @@ Ghost.prototype={
                     }
                 }
 
-                this.turnPoint.x = (x * this.gridsize) + (this.gridsize / 2);
-                this.turnPoint.y = (y * this.gridsize) + (this.gridsize / 2);
-
-                // snap to grid exact position before turning
-                this.ghost.x = this.turnPoint.x;
-                this.ghost.y = this.turnPoint.y;
-
-                this.lastPosition = { x: x, y: y };
-
-                //this.ghost.body.reset(this.turnPoint.x, this.turnPoint.y);
                 this.move(bestDecision);
                 break;
             case 2:
@@ -121,16 +112,7 @@ Ghost.prototype={
                         break;
                 }
 
-                this.turnPoint.x = (x * this.gridsize) + (this.gridsize / 2);
-                this.turnPoint.y = (y * this.gridsize) + (this.gridsize / 2);
 
-                // snap to grid exact position before turning
-                this.ghost.x = this.turnPoint.x;
-                this.ghost.y = this.turnPoint.y;
-
-                this.lastPosition = { x: x, y: y };
-
-                //this.ghost.body.reset(this.turnPoint.x, this.turnPoint.y);
                 this.move(Decision);
                 break;
 
@@ -141,6 +123,7 @@ Ghost.prototype={
 
         var speed = this.ghostSpeed;
         if (dir === Phaser.LEFT || dir === Phaser.UP) {
+            console.log("hola");
             speed = -speed;
         }
         if (dir === Phaser.LEFT || dir === Phaser.RIGHT) {
@@ -148,19 +131,20 @@ Ghost.prototype={
         } else {
             this.ghost.body.velocity.y = speed;
         }
+        //console.log([this.ghost.body.velocity.x,this.ghost.body.velocity.y])
     },
 
     inicipor: function(){
-        if(this.mode !== 3){
+        if(this.ghost.mode != 3){
             this.ghost.play('f');
-            this.mode=2;
+            this.ghost.mode=2;
         }
     },
 
     fipor: function () {
-        if(this.mode !== 3){
+        if(this.ghost.mode != 3){
             this.ghost.play('change');
-            this.mode=1;
+            this.ghost.mode=1;
         }
     },
 

@@ -14,10 +14,6 @@ var Pacman = function(game){
     this.gridsize = 16;
     this.numDots = 0;
 
-    this.score = 0;
-    this.scoreText = null;
-    this.level =1;
-    this.lvlText = null;
 
     this.speed = 150;
     this.threshold = 3;
@@ -61,6 +57,11 @@ Pacman.prototype = {
     },
 
     create: function () {
+        this.score = 0;
+        this.scoreText = null;
+        this.level =1;
+        this.lvlText = null;
+
         this.map = game.add.tilemap('map');
         this.map.addTilesetImage('pacman-tiles', 'tiles');
         this.layer = this.map.createLayer('Capa de Patrones 1');
@@ -76,6 +77,7 @@ Pacman.prototype = {
         this.pacman = this.add.sprite((13 * 16) + 8, (19 * 16) + 8, 'pacman', 0);
         this.pacman.anchor.set(0.5);
         this.pacman.animations.add('munch', [0, 1, 2, 1], 20, true);
+        this.pacman.isdead=false;
 
         this.fruits=game.add.physicsGroup();
         this.fruits.create((0.2*16)+8,(6.2*16)+8,'fruit');
@@ -93,6 +95,9 @@ Pacman.prototype = {
         this.lvlText.anchor.set(0.5);
 
         this.cursors = this.input.keyboard.createCursorKeys();
+        this.space = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);this.space.onDown.add(function() {
+            game.paused = !game.paused;}, this);
+        this.enter=this.input.keyboard.addKey(Phaser.Keyboard.ENTER);
 
         this.pacman.play('munch');
         this.move(Phaser.LEFT);
@@ -102,6 +107,9 @@ Pacman.prototype = {
         g3=new Ghost(this, 'g3','g3',{x:26,y:1},Phaser.LEFT);
         g4=new Ghost(this, 'g4','g4',{x:26,y:29},Phaser.LEFT);
         this.ghosts.push(g1,g2,g3,g4);
+        for (i=0; i<this.ghosts.length; i++){
+            this.ghosts[i].ghost.mode=1;
+        }
     },
 
     checkKeys: function () {
@@ -232,53 +240,61 @@ Pacman.prototype = {
     },
 
     Dead: function (pacman, ghost) {
-        if (this.ghost.mode===1)
+        if (ghost.mode==1)
         {
-            this.pacman.kill();
+            pacman.kill();
+            pacman.isdead=true;
         }
         else{
-            this.ghost.kill();
+            ghost.kill();
+            ghost.mode=3;
         }
 
     },
 
     update: function () {
-
-        this.physics.arcade.collide(this.pacman, this.layer);
-        this.physics.arcade.overlap(this.pacman, this.dots, this.eatDot, null, this);
-        for (var i=0; i<this.ghosts.length; i++) {
-            console.log(this.ghosts[i]);
-            if (this.ghosts[i].mode !== 2) {
-                this.physics.arcade.overlap(this.pacman, this.ghosts[i], this.Dead, null, this);
-                console.log(this.pacman.x);
+        if (!this.pacman.isdead) {
+            this.physics.arcade.collide(this.pacman, this.layer);
+            this.physics.arcade.overlap(this.pacman, this.dots, this.eatDot, null, this);
+            for (var i = 0; i < this.ghosts.length; i++) {
+                if (this.ghosts[i].ghost.mode != 3) {
+                    this.physics.arcade.overlap(this.pacman, this.ghosts[i].ghost, this.Dead, null, this);
+                }
             }
+            this.game.physics.arcade.overlap(this.pacman, this.fruits, this.eatfruit, null, this);
+
+            this.marker.x = this.math.snapToFloor(Math.floor(this.pacman.x), this.gridsize) / this.gridsize;
+            this.marker.y = this.math.snapToFloor(Math.floor(this.pacman.y), this.gridsize) / this.gridsize;
+
+            //  Update our grid sensors
+            this.directions[1] = this.map.getTileLeft(this.layer.index, this.marker.x, this.marker.y);
+            this.directions[2] = this.map.getTileRight(this.layer.index, this.marker.x, this.marker.y);
+            this.directions[3] = this.map.getTileAbove(this.layer.index, this.marker.x, this.marker.y);
+            this.directions[4] = this.map.getTileBelow(this.layer.index, this.marker.x, this.marker.y);
+
+            this.scoreText.setText("Score: " + this.score);
+            this.lvlText.setText("Level: " + this.level);
+
+            this.checkKeys();
+
+            if (this.turning !== Phaser.NONE) {
+                this.turn();
+            }
+
+            this.updateGhosts();
+            if (this.timer === 1) {
+                for (var i = 0; i < this.ghosts.length; i++) {
+                    this.ghosts[i].fipor();
+                }
+            }
+            if (this.timer !== 0) this.timer = this.timer - 1;
         }
-        this.game.physics.arcade.overlap(this.pacman, this.fruits, this.eatfruit, null, this);
-
-        this.marker.x = this.math.snapToFloor(Math.floor(this.pacman.x), this.gridsize) / this.gridsize;
-        this.marker.y = this.math.snapToFloor(Math.floor(this.pacman.y), this.gridsize) / this.gridsize;
-
-        //  Update our grid sensors
-        this.directions[1] = this.map.getTileLeft(this.layer.index, this.marker.x, this.marker.y);
-        this.directions[2] = this.map.getTileRight(this.layer.index, this.marker.x, this.marker.y);
-        this.directions[3] = this.map.getTileAbove(this.layer.index, this.marker.x, this.marker.y);
-        this.directions[4] = this.map.getTileBelow(this.layer.index, this.marker.x, this.marker.y);
-
-        this.scoreText.setText("Score: " + this.score);
-        this.lvlText.setText("Level: " + this.level);
-
-        this.checkKeys();
-
-        if (this.turning !== Phaser.NONE)
-        {
-            this.turn();
-        }
-
-        this.updateGhosts();
-        if (this.timer !==0) this.timer=this.timer-1;
-        if (this.timer ===1){
-            for(var i=0; i<this.ghosts.length; i++){
-                this.ghosts[i].fipor();
+        else{
+            var style ={font: "24px Arial", fill: "#fff", boundsAlignH: "center"};
+            this.start = game.add.text(14*16, 15.5*16, "Press enter to start", style);
+            this.start.anchor.set(0.5);
+            if(this.enter.isDown){
+                this.create();
             }
         }
     },
@@ -288,13 +304,12 @@ Pacman.prototype = {
         for(var i=0; i<this.ghosts.length; i++){
             this.ghosts[i].inicipor();
         }
-        this.timer=100;
+        this.timer=250;
     },
 
     updateGhosts: function () {
         for (var i = 0; i < this.ghosts.length; i++) {
-            console.log(this.ghosts[i].mode);
-            if(this.ghosts[i].mode != 3){
+            if(this.ghosts[i].ghost.mode !=3){
                 this.ghosts[i].update();
             }
         }
