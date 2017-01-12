@@ -15,7 +15,7 @@ var Pacman = function(game){
     this.numDots = 0;
 
 
-    this.speed = 150;
+    this.speed = 100;
     this.threshold = 3;
 
     this.marker = new Phaser.Point();
@@ -46,14 +46,14 @@ Pacman.prototype = {
 
     preload: function () {
         this.load.image('dot', 'dot.png');
-        this.load.spritesheet('fruit','fruit.png',25,25);
+        this.load.spritesheet('fruit','fruit.png',16,16);
         this.load.tilemap('map', 'mapa2.json', null, Phaser.Tilemap.TILED_JSON);
         this.load.image('tiles', 'spritesheet2.png');
-        this.load.spritesheet('pacman', 'pacman.png', 25, 25);
-        this.load.spritesheet('g1','g1.png',25,25);
-        this.load.spritesheet('g2','g2.png',25,25);
-        this.load.spritesheet('g3','g3.png',25,25);
-        this.load.spritesheet('g4','g4.png',25,25);
+        this.load.spritesheet('pacman', 'pacman.png', 16,16);
+        this.load.spritesheet('g1','g1.png',16,16);
+        this.load.spritesheet('g2','g2.png',16,16);
+        this.load.spritesheet('g3','g3.png',16,16);
+        this.load.spritesheet('g4','g4.png',16,16);
     },
 
     create: function () {
@@ -294,7 +294,8 @@ Pacman.prototype = {
             this.start = game.add.text(14*16, 15.5*16, "Press enter to start", style);
             this.start.anchor.set(0.5);
             if(this.enter.isDown){
-                this.create();
+                console.log("hola");
+                game.create();
             }
         }
     },

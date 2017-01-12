@@ -12,7 +12,7 @@ var Ghost =function(game, key,name, pos, dir){
     this.threshold = 6;
     this.turnTimer=0;
 
-    this.ghostSpeed=150;
+    this.ghostSpeed=100;
     this.currentDir=this.Dir;
     this.directions=[null, null, null, null, null];
     this.opposites = [ Phaser.NONE, Phaser.RIGHT, Phaser.LEFT, Phaser.DOWN, Phaser.UP ];
@@ -88,42 +88,19 @@ Ghost.prototype={
                 this.move(bestDecision);
                 break;
             case 2:
-                var distanceToObj = 999999;
-                var direction, Decision;
-                direction = possibleExits[Math.floor(Math.random()*possibleExits.length)];
-                switch (direction) {
-                    case Phaser.LEFT:
-                        decision = new Phaser.Point((x-1)*this.gridsize + (this.gridsize/2),
-                            (y * this.gridsize) + (this.gridsize / 2));
-                        break;
-                    case Phaser.RIGHT:
-                        decision = new Phaser.Point((x+1)*this.gridsize + (this.gridsize/2),
-                            (y * this.gridsize) + (this.gridsize / 2));
-                        break;
-                    case Phaser.UP:
-                        decision = new Phaser.Point(x * this.gridsize + (this.gridsize/2),
-                            ((y-1)*this.gridsize) + (this.gridsize / 2));
-                        break;
-                    case Phaser.DOWN:
-                        decision = new Phaser.Point(x * this.gridsize + (this.gridsize/2),
-                            ((y+1)*this.gridsize) + (this.gridsize / 2));
-                        break;
-                    default:
-                        break;
-                }
+                var direction, decision;
+                var select = Math.floor(Math.random() * possibleExits.length);
+                var direction = possibleExits[select];
+                this.move(direction);
 
-
-                this.move(Decision);
                 break;
 
         }
     },
     move: function(dir) {
         this.currentDir = dir;
-
         var speed = this.ghostSpeed;
         if (dir === Phaser.LEFT || dir === Phaser.UP) {
-            console.log("hola");
             speed = -speed;
         }
         if (dir === Phaser.LEFT || dir === Phaser.RIGHT) {
@@ -131,7 +108,6 @@ Ghost.prototype={
         } else {
             this.ghost.body.velocity.y = speed;
         }
-        //console.log([this.ghost.body.velocity.x,this.ghost.body.velocity.y])
     },
 
     inicipor: function(){
