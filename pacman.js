@@ -6,28 +6,11 @@ var c_hight=31*16;
 var game = new Phaser.Game(c_width, c_hight, Phaser.AUTO, 'phaser-example');
 
 var Pacman = function(game){
-    this.map=null;
-    this.pacman=null;
-    this.layer=null;
-    this.ghosts=[];
-    this.safetiles = [7,14];
-    this.gridsize = 16;
-    this.numDots = 0;
-
-
     this.speed = 100;
-    this.threshold = 3;
-
-    this.marker = new Phaser.Point();
-    this.turnPoint = new Phaser.Point();
-
-    this.directions = [ null, null, null, null, null ];
-    this.opposites = [ Phaser.NONE, Phaser.RIGHT, Phaser.LEFT, Phaser.DOWN, Phaser.UP ];
-
-    this.current = Phaser.NONE;
-    this.turning = Phaser.NONE;
-    this.timer=0;
-
+    this.score = 0;
+    this.scoreText = null;
+    this.level =1;
+    this.lvlText = null;
 };
 
 Pacman.prototype = {
@@ -54,13 +37,33 @@ Pacman.prototype = {
         this.load.spritesheet('g2','g2.png',16,16);
         this.load.spritesheet('g3','g3.png',16,16);
         this.load.spritesheet('g4','g4.png',16,16);
+        this.load.audio('eat', 'eatsound.wav');
+        this.load.audio('die', 'deadsound.wav');
     },
 
     create: function () {
-        this.score = 0;
-        this.scoreText = null;
-        this.level =1;
-        this.lvlText = null;
+        this.map=null;
+        this.pacman=null;
+        this.layer=null;
+        this.ghosts=[];
+        this.safetiles = [7,14];
+        this.gridsize = 16;
+        this.numDots = 0;
+
+        this.threshold = 3;
+
+        this.marker = new Phaser.Point();
+        this.turnPoint = new Phaser.Point();
+
+        this.directions = [ null, null, null, null, null ];
+        this.opposites = [ Phaser.NONE, Phaser.RIGHT, Phaser.LEFT, Phaser.DOWN, Phaser.UP ];
+
+        this.current = Phaser.NONE;
+        this.turning = Phaser.NONE;
+        this.timer=0;
+
+        eatsound=this.add.audio('eat');
+        diesound=this.add.audio('die');
 
         this.map = game.add.tilemap('map');
         this.map.addTilesetImage('pacman-tiles', 'tiles');
@@ -229,12 +232,14 @@ Pacman.prototype = {
 
         dot.kill();
         this.score=this.score+10;
+        eatsound.play();
+
 
         if (this.dots.total === 0)
         {
-            this.dots.callAll('revive');
-            this.speed=this.speed+150;
             this.level=this.level+1;
+            this.speed=this.speed+50;
+            this.create();
         }
 
     },
@@ -242,8 +247,12 @@ Pacman.prototype = {
     Dead: function (pacman, ghost) {
         if (ghost.mode==1)
         {
+            diesound.play();
             pacman.kill();
             pacman.isdead=true;
+            this.score=0;
+            this.level=1;
+            this.speed=100;
         }
         else{
             ghost.kill();
@@ -294,8 +303,7 @@ Pacman.prototype = {
             this.start = game.add.text(14*16, 15.5*16, "Press enter to start", style);
             this.start.anchor.set(0.5);
             if(this.enter.isDown){
-                console.log("hola");
-                game.create();
+                this.create();
             }
         }
     },
