@@ -12,7 +12,6 @@ var Ghost =function(game, key,name, pos, dir){
     this.threshold = 6;
     this.turnTimer=0;
 
-    this.ghostSpeed=100;
     this.currentDir=this.Dir;
     this.directions=[null, null, null, null, null];
     this.opposites = [ Phaser.NONE, Phaser.RIGHT, Phaser.LEFT, Phaser.DOWN, Phaser.UP ];
@@ -21,6 +20,7 @@ var Ghost =function(game, key,name, pos, dir){
     this.ghost = this.game.add.sprite((this.Pos.x * 16) + 8, (this.Pos.y * 16) + 8, key, 0);
     this.ghost.name = this.name;
     this.ghost.mode=1;
+    this.ghost.ghostSpeed=this.game.speed;
     this.ghost.anchor.set(0.5);
     this.ghost.animations.add('change',[0,1,6,7,2,3,4,5],10, true);
     this.ghost.animations.add('f',[9,10],10, true);
@@ -99,7 +99,7 @@ Ghost.prototype={
     },
     move: function(dir) {
         this.currentDir = dir;
-        var speed = this.ghostSpeed;
+        var speed = this.ghost.ghostSpeed;
         if (dir === Phaser.LEFT || dir === Phaser.UP) {
             speed = -speed;
         }
